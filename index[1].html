@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameSpec — PC Game Performance Analyzer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#07090d;--panel:rgba(18,22,30,.9);--border:rgba(255,255,255,.08);--text:#f4f7fb;--muted:#8993a4;--accent:#7c5cff;--accent2:#00d4ff;--green:#32e875;--yellow:#ffc857;--red:#ff5964}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 15% 10%,rgba(124,92,255,.18),transparent 30%),radial-gradient(circle at 85% 20%,rgba(0,212,255,.12),transparent 28%),var(--bg);color:var(--text);min-height:100vh}
+nav{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 7%;border-bottom:1px solid var(--border);background:rgba(7,9,13,.72);backdrop-filter:blur(18px);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800}.logoIcon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 25px rgba(124,92,255,.35)}.navStatus{color:var(--muted);font-size:13px}.dot{display:inline-block;width:7px;height:7px;background:var(--green);border-radius:50%;margin-right:7px;box-shadow:0 0 10px var(--green)}
+.hero{max-width:1200px;margin:auto;padding:80px 25px 50px;text-align:center}.badge{display:inline-block;padding:8px 14px;border:1px solid rgba(124,92,255,.3);background:rgba(124,92,255,.08);color:#b9abff;border-radius:999px;font-size:12px;margin-bottom:22px}.hero h1{font-size:clamp(42px,7vw,78px);line-height:.98;letter-spacing:-4px;max-width:900px;margin:auto}.gradient{background:linear-gradient(90deg,#fff,var(--accent2),#9c7cff);-webkit-background-clip:text;color:transparent}.hero p{max-width:650px;margin:24px auto 0;color:var(--muted);line-height:1.7}
+.container{max-width:1200px;margin:auto;padding:0 25px 80px}.grid{display:grid;grid-template-columns:380px 1fr;gap:22px}.panel{background:linear-gradient(145deg,rgba(22,27,36,.92),rgba(11,14,19,.92));border:1px solid var(--border);border-radius:22px;padding:25px;box-shadow:0 20px 60px rgba(0,0,0,.25)}.panel h2{font-size:18px;margin-bottom:6px}.panelDescription{color:var(--muted);font-size:13px;margin-bottom:25px}
+.formGroup{margin-bottom:17px}label{display:block;color:#b7c0cf;font-size:12px;font-weight:600;margin-bottom:8px}.optional{color:#6f7888;font-weight:500}input,select{width:100%;border:1px solid var(--border);outline:none;background:#0c1016;color:white;border-radius:12px;padding:13px 14px;font-size:14px;transition:.2s}input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,92,255,.12)}input:disabled{opacity:.55;cursor:not-allowed}
+.gpuModes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.gpuMode{border:1px solid var(--border);background:rgba(255,255,255,.025);border-radius:11px;padding:11px;cursor:pointer;text-align:center;font-size:11px;color:#aab4c4;transition:.2s}.gpuMode:hover{border-color:rgba(124,92,255,.4)}.gpuMode.active{background:rgba(124,92,255,.12);border-color:var(--accent);color:white}.gpuMode input{display:none}.gpuHint{color:#70798a;font-size:10px;line-height:1.5;margin-top:7px}
+.analyzeBtn{width:100%;padding:15px;border:0;border-radius:13px;background:linear-gradient(100deg,var(--accent),#5b8cff);color:white;font-weight:800;cursor:pointer;margin-top:8px;transition:.2s;box-shadow:0 10px 30px rgba(124,92,255,.25)}.analyzeBtn:hover{transform:translateY(-2px);box-shadow:0 15px 35px rgba(124,92,255,.35)}
+.hardware{margin-top:18px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.spec{background:rgba(255,255,255,.035);border:1px solid var(--border);padding:12px;border-radius:12px}.spec small{color:var(--muted);font-size:10px;display:block}.spec strong{display:block;font-size:13px;margin-top:4px;word-break:break-word}
+.resultsHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.resultsHeader h2{font-size:20px}.count{color:var(--muted);font-size:12px;margin-top:4px}.searchBox{position:relative;margin-bottom:18px}.searchBox input{padding-left:42px}.searchIcon{position:absolute;left:15px;top:12px;color:var(--muted)}
+.gameCard{border:1px solid var(--border);background:rgba(255,255,255,.025);border-radius:17px;padding:18px;margin-bottom:12px;transition:.2s}.gameCard:hover{transform:translateY(-2px);border-color:rgba(124,92,255,.35);background:rgba(124,92,255,.04)}.gameTop{display:flex;justify-content:space-between;gap:15px}.gameName{font-weight:800;font-size:16px}.gameGenre{color:var(--muted);font-size:11px;margin-top:4px}.performance{text-align:right}.fps{font-size:24px;font-weight:900}.fps span{font-size:11px;color:var(--muted);font-weight:500}.status{display:inline-block;font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;margin-top:4px}.smooth{color:var(--green);background:rgba(50,232,117,.1)}.playable{color:var(--yellow);background:rgba(255,200,87,.1)}.poor{color:var(--red);background:rgba(255,89,100,.1)}.bar{height:5px;border-radius:10px;background:#202630;overflow:hidden;margin-top:15px}.barFill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .8s ease}.settings{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}.tag{color:#aeb8c9;font-size:10px;background:rgba(255,255,255,.04);padding:5px 8px;border-radius:7px}
+.empty{text-align:center;padding:70px 20px;color:var(--muted)}.emptyIcon{font-size:45px;margin-bottom:15px}.empty h3{color:white;margin-bottom:8px}.notice{margin-top:15px;padding:12px;border-radius:11px;background:rgba(255,200,87,.06);border:1px solid rgba(255,200,87,.12);color:#aeb6c5;font-size:10px;line-height:1.5}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.hero{padding-top:55px}nav{padding:0 5%}.navStatus{display:none}}
+@media(max-width:500px){.hero h1{font-size:43px;letter-spacing:-2px}.gameTop{flex-direction:column}.performance{text-align:left}.gpuModes{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav><div class="logo"><div class="logoIcon">⚡</div>GameSpec</div><div class="navStatus"><span class="dot"></span>Performance Engine Online</div></nav>
+
+<section class="hero">
+<div class="badge">PC PERFORMANCE ANALYZER</div>
+<h1>Know exactly what your <span class="gradient">PC can play.</span></h1>
+<p>Enter your computer specifications and get estimated FPS, performance ratings, and recommended games instantly.</p>
+</section>
+
+<main class="container"><div class="grid">
+<section class="panel">
+<h2>Your Hardware</h2>
+<p class="panelDescription">Enter your PC or laptop specifications.</p>
+
+<div class="formGroup"><label>CPU / PROCESSOR</label><input id="cpu" placeholder="Example: Intel Core i5-13420H"></div>
+
+<div class="formGroup">
+<label>GRAPHICS <span class="optional">(Optional)</span></label>
+<div class="gpuModes">
+<label class="gpuMode active" id="dedicatedMode" onclick="setGPUMode('dedicated')"><input type="radio" name="gpuMode" checked>🎮 Dedicated GPU</label>
+<label class="gpuMode" id="integratedMode" onclick="setGPUMode('integrated')"><input type="radio" name="gpuMode">💻 Integrated / None</label>
+</div>
+<input id="gpu" placeholder="Example: RTX 4060">
+<div class="gpuHint" id="gpuHint">If your PC has a dedicated graphics card, enter its model here.</div>
+</div>
+
+<div class="formGroup"><label>RAM</label><select id="ram"><option value="4">4 GB</option><option value="8">8 GB</option><option value="16" selected>16 GB</option><option value="32">32 GB</option><option value="64">64 GB</option></select></div>
+
+<div class="formGroup"><label>RESOLUTION</label><select id="resolution"><option value="720">1280 × 720</option><option value="1080" selected>1920 × 1080</option><option value="1440">2560 × 1440</option><option value="2160">3840 × 2160</option></select></div>
+
+<div class="formGroup"><label>GRAPHICS PRESET</label><select id="quality"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="ultra">Ultra</option></select></div>
+
+<button class="analyzeBtn" onclick="analyze()">⚡ Analyze My PC</button>
+<div class="hardware" id="hardwareSummary"></div>
+<div class="notice">⚠️ FPS values are estimates. Real performance can change depending on drivers, temperatures, game updates, background applications and graphics settings.</div>
+</section>
+
+<section class="panel">
+<div class="resultsHeader"><div><h2>Game Compatibility</h2><div class="count" id="resultCount">Enter your specs to begin</div></div></div>
+<div class="searchBox"><span class="searchIcon">🔎</span><input id="gameSearch" placeholder="Search games... GTA V, Valorant, Minecraft..." oninput="searchGames()"></div>
+<div id="games"><div class="empty"><div class="emptyIcon">🎮</div><h3>Ready to test your PC?</h3><p>Enter your hardware specifications above.</p></div></div>
+</section>
+</div></main>
+
+<script>
+const games=[
+{name:"Valorant",genre:"Competitive FPS",gpu:20,cpu:20,baseFPS:250},
+{name:"League of Legends",genre:"MOBA",gpu:15,cpu:15,baseFPS:220},
+{name:"Minecraft",genre:"Sandbox",gpu:30,cpu:35,baseFPS:180},
+{name:"Roblox",genre:"Platform",gpu:20,cpu:25,baseFPS:160},
+{name:"GTA V",genre:"Open World",gpu:55,cpu:50,baseFPS:100},
+{name:"GTA Online",genre:"Open World",gpu:60,cpu:55,baseFPS:90},
+{name:"Fortnite",genre:"Battle Royale",gpu:55,cpu:45,baseFPS:120},
+{name:"Counter-Strike 2",genre:"Competitive FPS",gpu:55,cpu:60,baseFPS:120},
+{name:"Apex Legends",genre:"Battle Royale",gpu:65,cpu:55,baseFPS:100},
+{name:"Overwatch 2",genre:"Hero Shooter",gpu:50,cpu:45,baseFPS:120},
+{name:"Rocket League",genre:"Sports",gpu:35,cpu:30,baseFPS:180},
+{name:"EA FC 26",genre:"Sports",gpu:55,cpu:50,baseFPS:100},
+{name:"Forza Horizon 5",genre:"Racing",gpu:75,cpu:65,baseFPS:80},
+{name:"Red Dead Redemption 2",genre:"Open World",gpu:90,cpu:75,baseFPS:65},
+{name:"Cyberpunk 2077",genre:"RPG",gpu:95,cpu:75,baseFPS:60},
+{name:"Elden Ring",genre:"Action RPG",gpu:80,cpu:70,baseFPS:60},
+{name:"God of War",genre:"Action",gpu:85,cpu:70,baseFPS:65},
+{name:"Marvel's Spider-Man Remastered",genre:"Action",gpu:80,cpu:70,baseFPS:65},
+{name:"Hogwarts Legacy",genre:"RPG",gpu:90,cpu:75,baseFPS:55},
+{name:"The Witcher 3",genre:"RPG",gpu:75,cpu:65,baseFPS:75},
+{name:"PUBG",genre:"Battle Royale",gpu:60,cpu:55,baseFPS:100},
+{name:"Rainbow Six Siege",genre:"Tactical FPS",gpu:50,cpu:55,baseFPS:140},
+{name:"Call of Duty Warzone",genre:"Battle Royale",gpu:90,cpu:80,baseFPS:65},
+{name:"Assassin's Creed Valhalla",genre:"Open World",gpu:80,cpu:70,baseFPS:65},
+{name:"Terraria",genre:"Sandbox",gpu:10,cpu:15,baseFPS:200},
+{name:"Among Us",genre:"Social",gpu:5,cpu:10,baseFPS:200},
+{name:"Fall Guys",genre:"Party",gpu:40,cpu:35,baseFPS:120},
+{name:"Palworld",genre:"Survival",gpu:75,cpu:65,baseFPS:60},
+{name:"Euro Truck Simulator 2",genre:"Simulation",gpu:45,cpu:45,baseFPS:100},
+{name:"BeamNG.drive",genre:"Simulation",gpu:65,cpu:75,baseFPS:75}
+];
+
+let calculatedGames=[];
+let gpuMode="dedicated";
+
+function setGPUMode(mode){
+gpuMode=mode;
+const dedicated=document.getElementById("dedicatedMode");
+const integrated=document.getElementById("integratedMode");
+const gpu=document.getElementById("gpu");
+const hint=document.getElementById("gpuHint");
+if(mode==="dedicated"){
+dedicated.classList.add("active");integrated.classList.remove("active");gpu.disabled=false;gpu.placeholder="Example: RTX 4060";hint.textContent="If your PC has a dedicated graphics card, enter its model here.";
+}else{
+dedicated.classList.remove("active");integrated.classList.add("active");gpu.value="";gpu.disabled=true;gpu.placeholder="Integrated graphics will be used";hint.textContent="No dedicated GPU? No problem. The calculator will estimate performance using integrated graphics.";
+}
+}
+
+function getHardwareScore(){
+const cpu=document.getElementById("cpu").value.toLowerCase();
+let gpu=document.getElementById("gpu").value.toLowerCase();
+const ram=Number(document.getElementById("ram").value);
+let cpuScore=35,gpuScore=28;
+
+if(cpu.includes("i9")||cpu.includes("ryzen 9")||cpu.includes("7950")||cpu.includes("7900")||cpu.includes("14900")||cpu.includes("13900")) cpuScore=95;
+else if(cpu.includes("i7")||cpu.includes("ryzen 7")||cpu.includes("7800")||cpu.includes("7700")||cpu.includes("14700")||cpu.includes("13700")) cpuScore=80;
+else if(cpu.includes("i5")||cpu.includes("ryzen 5")||cpu.includes("13420")||cpu.includes("12400")||cpu.includes("13400")||cpu.includes("5600")||cpu.includes("7600")) cpuScore=65;
+else if(cpu.includes("i3")||cpu.includes("ryzen 3")) cpuScore=45;
+
+if(gpuMode==="integrated"){
+if(cpu.includes("ryzen 7")||cpu.includes("ryzen 5 7")||cpu.includes("radeon 780m")||cpu.includes("radeon 680m")) gpuScore=45;
+else if(cpu.includes("intel ultra")||cpu.includes("core ultra")) gpuScore=42;
+else if(cpu.includes("iris xe")) gpuScore=35;
+else if(cpu.includes("i5-13420")||cpu.includes("i5 13420")||cpu.includes("intel")) gpuScore=28;
+else gpuScore=25;
+}else{
+if(gpu.includes("rtx 5090")||gpu.includes("rtx 4090")) gpuScore=100;
+else if(gpu.includes("rtx 5080")||gpu.includes("rtx 4080")||gpu.includes("rtx 5070")||gpu.includes("rtx 4070")) gpuScore=90;
+else if(gpu.includes("rtx 4060")||gpu.includes("rtx 3060")||gpu.includes("rx 6600")||gpu.includes("rx 7600")) gpuScore=75;
+else if(gpu.includes("gtx 1660")||gpu.includes("gtx 1650")||gpu.includes("rx 580")||gpu.includes("rx 5500")) gpuScore=55;
+else if(gpu.includes("mx450")||gpu.includes("mx550")) gpuScore=40;
+else if(gpu.includes("uhd")||gpu.includes("intel hd")||gpu.includes("vega")) gpuScore=30;
+else gpuScore=45;
+}
+
+if(ram>=32){gpuScore+=5;cpuScore+=5}
+if(ram===8){gpuScore-=7;cpuScore-=5}
+if(ram<=4){gpuScore-=15;cpuScore-=12}
+
+return{cpu:Math.max(10,cpuScore),gpu:Math.max(10,gpuScore)};
+}
+
+function calculateFPS(game){
+const hardware=getHardwareScore();
+const resolution=Number(document.getElementById("resolution").value);
+const quality=document.getElementById("quality").value;
+let performance=Math.min(hardware.gpu/game.gpu,hardware.cpu/game.cpu);
+performance*={low:1.45,medium:1.15,high:.85,ultra:.65}[quality];
+if(resolution===1440) performance*=.72;
+if(resolution===2160) performance*=.48;
+if(resolution===720) performance*=1.18;
+return Math.max(8,Math.min(Math.round(game.baseFPS*performance),500));
+}
+
+function getStatus(fps){
+if(fps>=60)return{text:"SMOOTH",class:"smooth"};
+if(fps>=30)return{text:"PLAYABLE",class:"playable"};
+return{text:"POOR",class:"poor"};
+}
+
+function analyze(){
+const cpu=document.getElementById("cpu").value.trim();
+if(!cpu){alert("Please enter your CPU / Processor.");return}
+calculatedGames=games.map(game=>({...game,fps:calculateFPS(game)}));
+renderGames(calculatedGames);
+showHardware();
+}
+
+function showHardware(){
+const cpu=document.getElementById("cpu").value.trim();
+const gpu=gpuMode==="integrated"?"Integrated Graphics":document.getElementById("gpu").value.trim()||"Not specified";
+const ram=document.getElementById("ram").value+" GB";
+const resolution=document.getElementById("resolution").selectedOptions[0].text;
+document.getElementById("hardwareSummary").innerHTML=`
+<div class="spec"><small>CPU</small><strong>${escapeHTML(cpu)}</strong></div>
+<div class="spec"><small>GPU</small><strong>${escapeHTML(gpu)}</strong></div>
+<div class="spec"><small>RAM</small><strong>${ram}</strong></div>
+<div class="spec"><small>Resolution</small><strong>${resolution}</strong></div>`;
+}
+
+function renderGames(list){
+const container=document.getElementById("games");
+document.getElementById("resultCount").textContent=`${list.length} games analyzed`;
+if(list.length===0){
+container.innerHTML=`<div class="empty"><div class="emptyIcon">🔎</div><h3>No game found</h3><p>Try another game name.</p></div>`;
+return;
+}
+container.innerHTML=list.map(game=>{
+const status=getStatus(game.fps);
+const width=Math.min(100,(game.fps/144)*100);
+return `<div class="gameCard">
+<div class="gameTop">
+<div><div class="gameName">${escapeHTML(game.name)}</div><div class="gameGenre">${escapeHTML(game.genre)}</div></div>
+<div class="performance"><div class="fps">${game.fps}<span> FPS</span></div><div class="status ${status.class}">${status.text}</div></div>
+</div>
+<div class="bar"><div class="barFill" style="width:${width}%"></div></div>
+<div class="settings">
+<span class="tag">${document.getElementById("resolution").selectedOptions[0].text}</span>
+<span class="tag">${document.getElementById("quality").selectedOptions[0].text}</span>
+<span class="tag">Estimated</span>
+</div></div>`;
+}).join("");
+}
+
+function searchGames(){
+const query=document.getElementById("gameSearch").value.toLowerCase().trim();
+if(!calculatedGames.length)return;
+renderGames(calculatedGames.filter(game=>game.name.toLowerCase().includes(query)||game.genre.toLowerCase().includes(query)));
+}
+
+function escapeHTML(text){
+return String(text).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+setGPUMode("dedicated");
+</script>
+</body>
+</html>
